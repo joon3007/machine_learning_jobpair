@@ -3,12 +3,9 @@ from six.moves import range
 import os, sys
 from tensorflow.keras import backend as K
 from tensorflow.keras.preprocessing import image
-from tensorflow.keras.utils import Sequence
-from tensorflow.keras.utils import GeneratorEnqueuer
-from tensorflow.keras.utils import OrderedEnqueuer
 
 class ImageDataGenerator(image.ImageDataGenerator):
-
+    # create new function for using filepath data
     def flow_from_mapfile(self, class_num, filenames, label_list,
                             target_size=(256, 256), color_mode='rgb',
                             classes=None, class_mode='categorical',
@@ -77,7 +74,8 @@ class DataPathIterator(image.Iterator):
 
         self.filenames = filenames
         self.samples = len(self.filenames)
-        self.class_indices = dict(zip(class_num, range(len(class_num))))
+        #mapping original class with new class having range(0 ~ class numbers)
+        self.class_indices = dict(zip(class_num, range(len(class_num)))) 
         self.num_classes = len(class_num)
         
         self.classes = []
@@ -90,6 +88,7 @@ class DataPathIterator(image.Iterator):
     def _get_batches_of_transformed_samples(self, index_array):
         batch_x = np.zeros((len(index_array),) + self.image_shape, dtype=K.floatx())
         grayscale = self.color_mode == 'grayscale'
+        #load image using filename
         for i, j in enumerate(index_array):
             fname = self.filenames[j]
             img = image.load_img(fname,
@@ -116,6 +115,7 @@ class DataPathIterator(image.Iterator):
             batch_y = self.classes[index_array]
         elif self.class_mode == 'binary':
             batch_y = self.classes[index_array].astype(K.floatx())
+        #label one-hot encording    
         elif self.class_mode == 'categorical':
             batch_y = np.zeros((len(batch_x), self.num_classes), dtype=K.floatx())
             for i, label in enumerate(self.classes[index_array]):
